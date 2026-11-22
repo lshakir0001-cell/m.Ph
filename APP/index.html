@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#00a86b">
+<title>ميني فارماسي</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="m.Ph">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Schibsted+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday home tool, calm and clinical, for a family or team
+   IDEA a medicine box label: flat printed blocks, bold names, expiry stamps
+   PICTURE the fridge itself on an emerald block; its door swings open when the lock is released
+   COLOUR white ground, emerald #00a86b, pale pink #ffd6e0 for skincare, black ink; amber and red only for expiry status
+   TYPE Schibsted Grotesk 800 for figures + IBM Plex Sans Arabic for text
+   LAYOUT phone app shell (header, scrolling screen, bottom tabs); a centred 480px column on a laptop */
+:root{color-scheme:light dark;--bg:light-dark(#fff,#04140d);--ink:light-dark(#0b0b0b,#eef6f1);--mute:light-dark(#555b58,#9db3a7);--line:light-dark(#e2e6e4,#18392c);--card:light-dark(#fff,#082019);--em:#00a86b;--emd:light-dark(#007a4d,#3fd69b);--pk:#ffd6e0;--warn:#f2b705;--bad:#e5383b}
+:root[data-theme=light]{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans Arabic","Schibsted Grotesk",system-ui,sans-serif;overflow-x:clip}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--emd);outline-offset:2px}
+.app{height:100%;max-width:480px;margin:0 auto;display:grid;grid-template-rows:auto minmax(0,1fr) auto;border-inline:1px solid var(--line)}
+header{display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));border-bottom:1px solid var(--line)}
+.logo{background:var(--em);color:#0b0b0b;font:800 15px "Schibsted Grotesk",sans-serif;padding:5px 8px;border-radius:6px;direction:ltr}
+header .ttl{font-weight:700;font-size:17px;flex:1}
+.lang{min-height:40px;min-width:44px;border:1.5px solid var(--ink);background:none;border-radius:8px;font-weight:700}
+main{overflow-y:auto;padding:16px;padding-bottom:28px}
+.scr{display:none}
+.scr.on{display:block}
+h1{font:800 32px/1.1 "Schibsted Grotesk","IBM Plex Sans Arabic",sans-serif;margin:4px 0 14px}
+:lang(en) h1{letter-spacing:-.02em}
+h2{font-size:18px;margin:24px 0 6px}
+.fridge{margin:-16px -16px 0;background:var(--em);color:#0b0b0b;display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr);gap:18px;align-items:center;padding:22px 16px 20px}
+.fridge svg{width:100%;height:auto;display:block;direction:ltr}
+#door{transform-box:fill-box;transform-origin:0 50%;transition:transform .7s cubic-bezier(.3,.7,.2,1)}
+.fridge.open #door{transform:scaleX(.07)}
+.lbl{font-size:15px;font-weight:500}
+.big{font:800 clamp(52px,16vw,68px)/1 "Schibsted Grotesk",sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums;direction:ltr;text-align:start;margin:4px 0 2px}
+:dir(rtl) .big{text-align:right}
+.rng{font-size:14px}
+.lock{display:flex;align-items:center;gap:8px;font-weight:700;margin:14px 0 2px}
+.lock svg{width:20px;height:20px;flex:none}
+.cd{font-size:14px;min-height:22px;margin-bottom:8px}
+.btn{min-height:46px;border:0;border-radius:10px;padding:0 18px;font-weight:700;font-size:16px;background:#0b0b0b;color:#fff}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn.red{background:var(--bad);color:#fff}
+.btn.wide{width:100%}
+.sim{font-size:13px;color:var(--mute);margin:10px 0 0}
+.tally{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:2px solid var(--ink);border-radius:10px;margin-top:16px;overflow:hidden}
+.tally div{padding:10px 12px}
+.tally div+div{border-inline-start:2px solid var(--ink)}
+.tally b{display:block;font:800 30px/1.1 "Schibsted Grotesk",sans-serif}
+.tally span{font-size:13px;display:flex;align-items:center;gap:6px}
+.sq{width:10px;height:10px;border-radius:2px;flex:none;background:var(--ink)}
+.sq.warn{background:var(--warn)}
+.sq.bad{background:var(--bad)}
+.item{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.thumb{width:56px;height:56px;border-radius:10px;display:grid;place-items:center;font:800 22px "Schibsted Grotesk",sans-serif;overflow:hidden;background:var(--em);color:#0b0b0b}
+.thumb.skin{background:var(--pk);color:#7a2140}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.info{background:none;border:0;padding:0;text-align:start}
+.info b{display:block;font-size:16px;line-height:1.3;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--mute);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:4px}
+.meta span{white-space:nowrap}
+.pill{font-weight:700;padding:1px 8px;border-radius:99px}
+.pill.ok{background:var(--em);color:#0b0b0b}
+.pill.warn{background:var(--warn);color:#0b0b0b}
+.pill.bad{background:var(--bad);color:#fff}
+.qty{display:flex;align-items:center}
+.qty button{width:40px;height:44px;border:1.5px solid var(--line);background:var(--card);border-radius:10px;font-size:20px;font-weight:700}
+.qty span{min-width:30px;text-align:center;font:800 18px "Schibsted Grotesk",sans-serif}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.seg button{min-height:42px;padding:0 15px;border-radius:99px;border:1.5px solid var(--ink);background:none;font-weight:500}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+input[type=search],input[type=text],input[type=number],input[type=date],input[type=password]{width:100%;min-height:46px;font-size:16px;padding:0 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card)}
+input::placeholder{color:var(--mute)}
+.f{display:block;margin-bottom:14px}
+.f>span{display:block;font-size:14px;font-weight:500;margin-bottom:4px}
+.scan{position:relative;display:flex;gap:14px;align-items:center;width:100%;border:0;text-align:start;background:var(--pk);color:#0b0b0b;border-radius:14px;padding:16px;cursor:pointer;margin-bottom:18px}
+.modal.cam{place-items:stretch;background:#000}
+.camwrap{display:grid;grid-template-rows:minmax(0,1fr) auto auto;gap:12px;height:100%;width:100%;max-width:480px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));color:#fff}
+.vbox{position:relative;border-radius:14px;overflow:hidden;background:#111}
+#vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.frame{position:absolute;left:50%;top:50%;width:64%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid #00a86b;border-radius:14px;pointer-events:none}
+.camwrap p{margin:0;text-align:center}
+.camerr{color:#ffd6e0}
+.camwrap .btn{display:inline-flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.btn.light{background:#fff;color:#0b0b0b}
+.hid{position:absolute;opacity:0;width:1px;height:1px;overflow:hidden}
+.scan svg{flex:none;width:54px;height:54px}
+.scan b{font-size:18px;display:block}
+.scan small{font-size:14px;display:block}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.stepper{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;gap:6px}
+.stepper button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;font-size:20px;font-weight:700}
+.stepper input{text-align:center}
+.ph{display:flex;gap:12px;align-items:center}
+.ph .thumb{width:72px;height:72px}
+.ph label{display:inline-flex;align-items:center;min-height:46px;padding:0 16px;border:1.5px solid var(--ink);border-radius:10px;font-weight:700;cursor:pointer;position:relative}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.actions .btn{flex:1 1 120px}
+nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);background:var(--bg)}
+nav button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:60px;background:none;border:0;color:var(--mute);font-size:13px;font-weight:500}
+nav svg{width:24px;height:24px}
+nav button[aria-current=page]{color:var(--ink);font-weight:700}
+nav button[aria-current=page] svg{color:var(--emd)}
+.badge{position:absolute;top:5px;inset-inline-start:calc(50% + 4px);min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--bad);color:#fff;font:700 13px/20px "Schibsted Grotesk",sans-serif}
+.badge:empty{display:none}
+.al{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.al i{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-weight:800;background:var(--line)}
+.al i.bad{background:var(--bad);color:#fff}
+.al i.warn{background:var(--warn);color:#0b0b0b}
+.al i.ok{background:var(--em);color:#0b0b0b}
+.al small{display:block;color:var(--mute);font-size:13px}
+.empty{color:var(--mute);padding:12px 0}
+.note{font-size:13px;color:var(--mute);margin:8px 0 0}
+.card{border:1.5px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.card>b{display:block;margin-bottom:8px}
+.inl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.users div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.users div:last-child{border:0}
+.users span{color:var(--mute);font-size:14px}
+.modal{position:fixed;inset:0;background:rgb(0 0 0/.5);display:none;place-items:end center;z-index:9}
+.modal.on{display:grid}
+.sheet{background:var(--bg);width:min(480px,100%);border-radius:18px 18px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 4px;font-size:20px;text-align:center}
+.sheet p{margin:0 0 12px;text-align:center;color:var(--mute);font-size:14px}
+.dots{display:flex;gap:16px;justify-content:center;margin:12px 0 18px;direction:ltr}
+.dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink)}
+.dots i.f{background:var(--ink)}
+.dots.shake{animation:sh .35s}
+@keyframes sh{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;direction:ltr}
+.pad button{min-height:56px;font:800 22px "Schibsted Grotesk",sans-serif;border-radius:12px;border:1.5px solid var(--line);background:var(--card)}
+.pad button.t{font:500 15px "IBM Plex Sans Arabic",sans-serif}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10;width:max-content;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+@media(prefers-reduced-motion:reduce){#door,.toast{transition:none}.dots.shake{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <span class="logo">m.Ph</span>
+  <span class="ttl" data-t="app">ميني فارماسي</span>
+  <button class="lang" id="langbtn" type="button">EN</button>
+</header>
+
+<main id="main">
+  <section class="scr" id="scr-home">
+    <div class="fridge" id="fridge">
+      <svg viewBox="0 0 160 226" aria-hidden="true">
+        <rect x="20" y="14" width="132" height="204" rx="12" fill="#0b0b0b" opacity=".2"/>
+        <rect x="24" y="208" width="14" height="12" rx="2" fill="#0b0b0b"/>
+        <rect x="118" y="208" width="14" height="12" rx="2" fill="#0b0b0b"/>
+        <rect x="12" y="6" width="132" height="204" rx="12" fill="#f4f7f5" stroke="#0b0b0b" stroke-width="2"/>
+        <rect x="20" y="14" width="116" height="188" rx="6" fill="#d5e6dc"/>
+        <path d="M20 74H136M20 138H136" stroke="#8fb09e" stroke-width="3"/>
+        <g id="shelf"></g>
+        <g id="door">
+          <rect x="12" y="6" width="132" height="204" rx="12" fill="#fff" stroke="#0b0b0b" stroke-width="2"/>
+          <rect x="12" y="150" width="132" height="2" fill="#e2e6e4"/>
+          <rect x="26" y="24" width="68" height="32" rx="5" fill="#0b0b0b"/>
+          <text id="dtemp" x="60" y="46" text-anchor="middle" fill="#00a86b" font-family="Schibsted Grotesk,sans-serif" font-weight="800" font-size="18">4.6°</text>
+          <rect x="124" y="70" width="8" height="62" rx="4" fill="#0b0b0b"/>
+          <g transform="translate(104,166)"><path d="M4 11V7a6 6 0 0 1 12 0v4" fill="none" stroke="#0b0b0b" stroke-width="2.6"/><rect x="0" y="11" width="20" height="16" rx="3" fill="#0b0b0b"/><circle cx="10" cy="19" r="2.6" fill="#00a86b"/></g>
+        </g>
+      </svg>
+      <div>
+        <div class="lbl" data-t="temp">حرارة الثلاجة</div>
+        <div class="big"><span id="tv">4.6</span>°</div>
+        <div class="rng" id="trng"></div>
+        <div class="lock" id="lockst"></div>
+        <div class="cd" id="cd"></div>
+        <button class="btn" id="lockbtn" type="button"></button>
+      </div>
+    </div>
+    <p class="sim" data-t="sim"></p>
+    <div class="tally" id="tally"></div>
+    <h2 data-t="soon"></h2>
+    <div id="soonlist"></div>
+    <p class="note" data-t="sample"></p>
+  </section>
+
+  <section class="scr" id="scr-stock">
+    <h1 data-t="stock"></h1>
+    <div class="seg" id="cats">
+      <button type="button" data-cat="all" aria-pressed="true" data-t="all"></button>
+      <button type="button" data-cat="med" aria-pressed="false" data-t="med"></button>
+      <button type="button" data-cat="skin" aria-pressed="false" data-t="skin"></button>
+    </div>
+    <input type="search" id="q" data-tp="search" autocomplete="off">
+    <div id="list"></div>
+  </section>
+
+  <section class="scr" id="scr-add">
+    <h1 id="addh"></h1>
+    <button type="button" class="scan" id="scanbtn">
+      <svg viewBox="0 0 54 54" aria-hidden="true"><path d="M3 15V5a2 2 0 0 1 2-2h10M39 3h10a2 2 0 0 1 2 2v10M51 39v10a2 2 0 0 1-2 2H39M15 51H5a2 2 0 0 1-2-2V39" fill="none" stroke="#0b0b0b" stroke-width="3.5" stroke-linecap="round"/><rect x="13" y="13" width="28" height="28" rx="2" fill="#0b0b0b"/><path d="M17 17h5v5h-5zM27 17h3v3h-3zM33 21h4v4h-4zM17 27h4v3h-4zM24 24h5v6h-5zM32 30h5v7h-5zM17 33h6v4h-6zM26 34h3v3h-3z" fill="#ffd6e0"/></svg>
+      <span><b data-t="scan"></b><small data-t="scanHint"></small></span>
+    </button>
+    <form id="f" novalidate>
+      <label class="f"><span data-t="code"></span><input type="text" id="f-code" inputmode="text" autocomplete="off" dir="ltr"></label>
+      <label class="f"><span data-t="name"></span><input type="text" id="f-name" autocomplete="off" dir="auto"></label>
+      <div class="f"><span data-t="cat"></span>
+        <div class="seg" id="fcats">
+          <button type="button" data-fcat="med" aria-pressed="true" data-t="med"></button>
+          <button type="button" data-fcat="skin" aria-pressed="false" data-t="skin"></button>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="f"><span data-t="qty"></span>
+          <div class="stepper"><button type="button" data-st="-1" aria-label="-">−</button><input type="number" id="f-qty" min="0" value="1" inputmode="numeric"><button type="button" data-st="1" aria-label="+">+</button></div>
+        </div>
+        <label class="f"><span data-t="exp"></span><input type="date" id="f-exp"></label>
+      </div>
+      <label class="f"><span data-t="batch"></span><input type="text" id="f-batch" autocomplete="off" dir="ltr"></label>
+      <div class="f"><span data-t="photo"></span>
+        <div class="ph"><div class="thumb" id="f-prev"></div>
+          <label><input class="hid" type="file" id="f-photo" accept="image/*" capture="environment"><span data-t="photoBtn"></span></label>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit" data-t="save"></button>
+        <button class="btn alt" type="button" id="f-cancel" data-t="cancel"></button>
+        <button class="btn red" type="button" id="f-del" data-t="del"></button>
+      </div>
+    </form>
+  </section>
+
+  <section class="scr" id="scr-alerts">
+    <h1 data-t="alerts"></h1>
+    <div id="alist"></div>
+    <h2 data-t="log"></h2>
+    <div id="loglist"></div>
+  </section>
+
+  <section class="scr" id="scr-prefs">
+    <h1 data-t="prefs"></h1>
+    <div class="card"><b data-t="lang"></b>
+      <div class="seg" style="margin:0">
+        <button type="button" data-lang="ar" aria-pressed="true">العربية</button>
+        <button type="button" data-lang="en" aria-pressed="false">English</button>
+      </div>
+    </div>
+    <div class="card"><b data-t="pin"></b>
+      <div class="inl"><input type="password" id="p-pin" inputmode="numeric" maxlength="4" data-tp="newPin" dir="ltr"><button class="btn" type="button" id="p-pinbtn" data-t="change"></button></div>
+    </div>
+    <div class="card"><b data-t="tempRange"></b>
+      <div class="row2">
+        <label class="f" style="margin:0"><span data-t="min"></span><input type="number" id="p-min" step="0.5" inputmode="decimal"></label>
+        <label class="f" style="margin:0"><span data-t="max"></span><input type="number" id="p-max" step="0.5" inputmode="decimal"></label>
+      </div>
+    </div>
+    <div class="card"><b data-t="remind"></b>
+      <div class="seg" id="days" style="margin:0"></div>
+    </div>
+    <div class="card"><b data-t="autolock"></b>
+      <input type="number" id="p-auto" min="5" max="600" inputmode="numeric">
+    </div>
+    <div class="card"><b data-t="users"></b>
+      <div class="users" id="users"></div>
+      <p class="note" data-t="sampleUsers"></p>
+    </div>
+    <button class="btn alt wide" type="button" id="p-reset" data-t="reset"></button>
+  </section>
+</main>
+
+<nav id="nav">
+  <button type="button" data-go="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span data-t="home"></span></button>
+  <button type="button" data-go="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 6h4M10 12h4M10 18h4"/></svg><span data-t="stock"></span></button>
+  <button type="button" data-go="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span data-t="add"></span></button>
+  <button type="button" data-go="alerts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span data-t="alerts"></span><b class="badge" id="badge"></b></button>
+  <button type="button" data-go="prefs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span data-t="prefs"></span></button>
+</nav>
+</div>
+
+<div class="modal" id="pinm" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <h3 data-t="pinTitle"></h3>
+    <p data-t="pinHint"></p>
+    <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
+    <div class="pad" id="pad"></div>
+  </div>
+</div>
+<div class="modal" id="askm" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <h3 id="askq"></h3>
+    <div class="actions" style="margin-top:16px">
+      <button class="btn red" type="button" id="askyes"></button>
+      <button class="btn alt" type="button" id="askno" data-t="cancel"></button>
+    </div>
+  </div>
+</div>
+<div class="modal cam" id="scanm" role="dialog" aria-modal="true">
+  <div class="camwrap">
+    <div class="vbox"><video id="vid" playsinline muted></video><div class="frame"></div></div>
+    <p data-t="camHint"></p>
+    <p class="camerr" id="camerr" hidden data-t="camErr"></p>
+    <div class="actions">
+      <label class="btn light"><input class="hid" type="file" id="scanf" accept="image/*" capture="environment"><span data-t="usePhoto"></span></label>
+      <button class="btn alt" type="button" id="camclose" data-t="cancel" style="color:#fff;border-color:#fff"></button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script async src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script>
+{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const T={
+ar:{app:'ميني فارماسي',home:'الرئيسية',stock:'المخزون',add:'إضافة',alerts:'التنبيهات',prefs:'الإعدادات',temp:'حرارة الثلاجة',range:'النطاق المناسب {a} إلى {b}°م',locked:'الثلاجة مقفلة',unlocked:'الثلاجة مفتوحة',unlock:'افتح القفل',lockNow:'اقفل الحين',relock:'تنقفل تلقائيًا بعد {s} ثانية',sim:'الثلاجة هنا محاكاة، وأول ما نربط ESP32 تصير القراءات حقيقية.',total:'منتج',soonN:'قرّب ينتهي',expN:'منتهي',soon:'قرّب ينتهي',allGood:'كل المنتجات صلاحيتها سليمة.',all:'الكل',med:'أدوية',skin:'سكن كير',search:'ابحث بالاسم أو الكود',ok:'سليم',warn:'قرّب',bad:'منتهي',left:'باقي {n} يوم',ago:'انتهى قبل {n} يوم',today:'ينتهي اليوم',addTitle:'إضافة منتج',editTitle:'تعديل منتج',scan:'امسح الكود',scanHint:'وجّه الكاميرا على الباركود أو مربع DataMatrix اللي على العلبة',camHint:'خلّ الكود داخل المربع الأخضر',camErr:'ما انفتحت الكاميرا. اسمح للتطبيق يستخدم الكاميرا، أو صوّر الكود بدالها.',usePhoto:'صوّر الكود بدال',code:'الكود',name:'اسم المنتج',cat:'التصنيف',qty:'الكمية',exp:'تاريخ الانتهاء',batch:'رقم التشغيلة',photo:'صورة المنتج',photoBtn:'صوّر المنتج',save:'احفظ',del:'احذف',cancel:'إلغاء',saved:'انحفظ المنتج',deleted:'انحذف المنتج',reading:'نقرأ الكود…',scanned:'انقرأ الكود وتعبّت البيانات',noScan:'ما انقرأ الكود. صوّره من قريب أو اكتبه يدوي.',need:'اكتب الاسم وتاريخ الانتهاء',pinTitle:'رمز القفل',pinHint:'الرمز التجريبي 1234',pinWrong:'الرمز غلط',evUnlock:'انفتح القفل من التطبيق',evLock:'انقفلت الثلاجة',evAuto:'انقفلت الثلاجة تلقائيًا',evTemp:'الحرارة طلعت عن النطاق: {t}°',alExp:'{name} منتهي الصلاحية',alSoon:'{name} ينتهي بعد {n} يوم',alToday:'{name} ينتهي اليوم',noAlerts:'ما فيه تنبيهات الحين',log:'سجل الثلاجة',noLog:'ما فيه شي للحين',lang:'اللغة',pin:'رمز القفل',newPin:'رمز جديد من 4 أرقام',change:'غيّر',pinSaved:'تغيّر الرمز',pinBad:'الرمز لازم 4 أرقام',tempRange:'نطاق الحرارة (°م)',min:'أدنى',max:'أعلى',remind:'نبّهني قبل الانتهاء بـ',days:'يوم',autolock:'القفل التلقائي بعد (ثانية)',users:'المستخدمين',sampleUsers:'الأسماء تجريبية للعرض.',admin:'مسؤول',member:'عضو',reset:'رجّع البيانات التجريبية',resetQ:'أكيد؟ بتنمسح تعديلاتك.',yes:'إيه',delQ:'تحذف هذا المنتج؟',sample:'المنتجات الموجودة تجريبية للعرض.',other:'EN'},
+en:{app:'Mini Pharmacy',home:'Home',stock:'Stock',add:'Add',alerts:'Alerts',prefs:'Settings',temp:'Fridge temperature',range:'Safe range {a} to {b}°C',locked:'Fridge is locked',unlocked:'Fridge is unlocked',unlock:'Unlock',lockNow:'Lock now',relock:'Relocks in {s}s',sim:'The fridge is simulated here. Readings become real once we connect the ESP32.',total:'Items',soonN:'Expiring',expN:'Expired',soon:'Expiring soon',allGood:'Everything is in date.',all:'All',med:'Medicines',skin:'Skincare',search:'Search by name or code',ok:'Good',warn:'Soon',bad:'Expired',left:'{n} days left',ago:'Expired {n} days ago',today:'Expires today',addTitle:'Add product',editTitle:'Edit product',scan:'Scan the code',scanHint:'Point the camera at the barcode or DataMatrix square on the box',camHint:'Keep the code inside the green square',camErr:"Couldn't open the camera. Allow camera access, or take a photo instead.",usePhoto:'Use a photo instead',code:'Code',name:'Product name',cat:'Category',qty:'Quantity',exp:'Expiry date',batch:'Batch number',photo:'Product photo',photoBtn:'Take photo',save:'Save',del:'Delete',cancel:'Cancel',saved:'Product saved',deleted:'Product deleted',reading:'Reading the code…',scanned:'Code read, details filled in',noScan:"Couldn't read the code. Try a closer photo or type it in.",need:'Add a name and expiry date',pinTitle:'Lock PIN',pinHint:'Sample PIN: 1234',pinWrong:'Wrong PIN',evUnlock:'Unlocked from the app',evLock:'Fridge locked',evAuto:'Fridge locked automatically',evTemp:'Temperature out of range: {t}°',alExp:'{name} has expired',alSoon:'{name} expires in {n} days',alToday:'{name} expires today',noAlerts:'No alerts right now',log:'Fridge log',noLog:'Nothing yet',lang:'Language',pin:'Lock PIN',newPin:'New 4-digit PIN',change:'Change',pinSaved:'PIN changed',pinBad:'PIN must be 4 digits',tempRange:'Temperature range (°C)',min:'Min',max:'Max',remind:'Remind me before expiry',days:'days',autolock:'Auto-lock after (seconds)',users:'Users',sampleUsers:'Sample names for the demo.',admin:'Admin',member:'Member',reset:'Restore sample data',resetQ:'Sure? Your changes will be cleared.',yes:'Yes',delQ:'Delete this product?',sample:'The products shown are samples.',other:'ع'}
+};
+const SAMPLE=()=>[
+ {id:'s1',name:'Panadol 500mg',cat:'med',qty:2,exp:'2027-08-31',code:'06285074000123',batch:'PA2291',photo:''},
+ {id:'s2',name:'NovoRapid FlexPen',cat:'med',qty:3,exp:'2026-12-10',code:'05701234567890',batch:'NR0418',photo:''},
+ {id:'s3',name:'Amoxil Syrup',cat:'med',qty:1,exp:'2026-11-20',code:'06281234500017',batch:'AM7730',photo:''},
+ {id:'s4',name:'Vitamin C Serum',cat:'skin',qty:1,exp:'2027-03-01',code:'3337875597333',batch:'',photo:''},
+ {id:'s5',name:'Retinol Cream',cat:'skin',qty:1,exp:'2026-12-01',code:'3600523971992',batch:'',photo:''},
+ {id:'s6',name:'Systane Eye Drops',cat:'med',qty:2,exp:'2027-01-15',code:'00300650577359',batch:'SY1102',photo:''}];
+const DEF={lang:'ar',pin:'1234',min:2,max:8,days:[30,7],auto:30};
+let S=null;
+try{S=JSON.parse(localStorage.getItem('mph-v1'))}catch(e){}
+if(!S||!Array.isArray(S.items))S={items:SAMPLE(),prefs:{...DEF},log:[]};
+S.prefs={...DEF,...S.prefs};
+const save=()=>{try{localStorage.setItem('mph-v1',JSON.stringify(S))}catch(e){}};
+const L=()=>S.prefs.lang;
+const t=(k,v={})=>(T[L()][k]??k).replace(/\{(\w+)\}/g,(m,x)=>v[x]??'');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtD=iso=>{const d=new Date(iso+'T00:00');return isNaN(d)?'':new Intl.DateTimeFormat(L()==='ar'?'ar-u-ca-gregory-nu-latn':'en-GB',{day:'numeric',month:'short',year:'numeric'}).format(d)};
+const fmtT=ms=>new Intl.DateTimeFormat(L()==='ar'?'ar-u-nu-latn':'en-GB',{hour:'numeric',minute:'2-digit',day:'numeric',month:'short'}).format(new Date(ms));
+const daysLeft=iso=>{const a=new Date(iso+'T00:00'),n=new Date();n.setHours(0,0,0,0);return Math.round((a-n)/864e5)};
+const status=d=>d<0?'bad':d<=Math.max(...S.prefs.days)?'warn':'ok';
+const expTxt=d=>d<0?t('ago',{n:-d}):d===0?t('today'):t('left',{n:d});
+let toastT;
+const toast=m=>{const e=$('#toast');e.textContent=m;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),2600)};
+const ICON={lockC:'<svg viewBox="0 0 20 20"><path d="M6 9V6a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="9" width="14" height="10" rx="2" fill="currentColor"/></svg>',lockO:'<svg viewBox="0 0 20 20"><path d="M6 9V6a4 4 0 0 1 8 0" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="9" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>'};
+
+/* ---------- rendering ---------- */
+const thumb=it=>`<div class="thumb ${it.cat}">${it.photo?`<img src="${it.photo}" alt="">`:esc((it.name.trim()[0]||'?').toUpperCase())}</div>`;
+const itemHTML=it=>{const d=daysLeft(it.exp),st=status(d);return `<div class="item">${thumb(it)}<button type="button" class="info" data-edit="${it.id}"><b dir="auto">${esc(it.name)}</b><span class="meta"><span class="pill ${st}">${t(st)}</span><span>${fmtD(it.exp)}</span><span>${expTxt(d)}</span></span></button><div class="qty"><button type="button" data-q="-1" data-id="${it.id}" aria-label="-">−</button><span>${it.qty}</span><button type="button" data-q="1" data-id="${it.id}" aria-label="+">+</button></div></div>`};
+const sorted=()=>[...S.items].sort((a,b)=>daysLeft(a.exp)-daysLeft(b.exp));
+function drawShelf(){
+  const ys=[74,138,202];let x=26,row=0,out='';
+  S.items.slice(0,14).forEach((it,i)=>{const h=20+(i*7)%18,w=15+(i*5)%9;if(x+w>132){row++;x=26}if(row>2)return;out+=`<rect x="${x}" y="${ys[row]-h}" width="${w}" height="${h}" rx="2" fill="${it.cat==='skin'?'#ffd6e0':'#00a86b'}" stroke="#0b0b0b" stroke-width="1.3"/>`;x+=w+4});
+  $('#shelf').innerHTML=out;
+}
+function renderHome(){
+  const ds=S.items.map(i=>status(daysLeft(i.exp)));
+  const w=ds.filter(s=>s==='warn').length,b=ds.filter(s=>s==='bad').length;
+  $('#tally').innerHTML=`<div><b>${S.items.length}</b><span><i class="sq"></i>${t('total')}</span></div><div><b>${w}</b><span><i class="sq warn"></i>${t('soonN')}</span></div><div><b>${b}</b><span><i class="sq bad"></i>${t('expN')}</span></div>`;
+  const s=sorted().filter(i=>status(daysLeft(i.exp))!=='ok');
+  $('#soonlist').innerHTML=s.length?s.map(itemHTML).join(''):`<p class="empty">${t('allGood')}</p>`;
+  $('#trng').textContent=t('range',{a:S.prefs.min,b:S.prefs.max});
+  drawShelf();renderLock();
+}
+let cat='all';
+function renderStock(){
+  const q=$('#q').value.trim().toLowerCase();
+  const l=sorted().filter(i=>(cat==='all'||i.cat===cat)&&(!q||i.name.toLowerCase().includes(q)||(i.code||'').includes(q)));
+  $('#list').innerHTML=l.length?l.map(itemHTML).join(''):`<p class="empty">—</p>`;
+  $$('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cat===cat));
+}
+function renderAlerts(){
+  const a=[];
+  sorted().forEach(i=>{const d=daysLeft(i.exp),st=status(d);if(st==='bad')a.push(`<div class="al"><i class="bad">!</i><div>${t('alExp',{name:esc(i.name)})}<small>${fmtD(i.exp)}</small></div></div>`);else if(st==='warn')a.push(`<div class="al"><i class="warn">${d}</i><div>${d===0?t('alToday',{name:esc(i.name)}):t('alSoon',{name:esc(i.name),n:d})}<small>${fmtD(i.exp)}</small></div></div>`)});
+  $('#alist').innerHTML=a.length?a.join(''):`<p class="empty">${t('noAlerts')}</p>`;
+  $('#loglist').innerHTML=S.log.length?S.log.map(e=>`<div class="al"><i class="${e.k==='evTemp'?'bad':'ok'}">${e.k==='evTemp'?'°':e.k==='evUnlock'?'↑':'↓'}</i><div>${t(e.k,e.v)}<small>${fmtT(e.at)}</small></div></div>`).join(''):`<p class="empty">${t('noLog')}</p>`;
+  const n=S.items.filter(i=>status(daysLeft(i.exp))!=='ok').length;
+  $('#badge').textContent=n||'';
+}
+function renderPrefs(){
+  $$('[data-lang]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===L()));
+  $('#p-min').value=S.prefs.min;$('#p-max').value=S.prefs.max;$('#p-auto').value=S.prefs.auto;
+  $('#days').innerHTML=[60,30,14,7,3,1].map(d=>`<button type="button" data-day="${d}" aria-pressed="${S.prefs.days.includes(d)}">${d} ${t('days')}</button>`).join('');
+  $('#users').innerHTML=[['سارة','Sarah','admin'],['خالد','Khalid','member'],['نورة','Noura','member']].map(u=>`<div><b>${L()==='ar'?u[0]:u[1]}</b><span>${t(u[2])}</span></div>`).join('');
+}
+function renderAll(){renderHome();renderStock();renderAlerts();renderPrefs();setFormTitle()}
+function applyLang(){
+  const r=document.documentElement;r.lang=L();r.dir=L()==='ar'?'rtl':'ltr';
+  $$('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));
+  $$('[data-tp]').forEach(e=>e.placeholder=t(e.dataset.tp));
+  $('#langbtn').textContent=t('other');document.title=t('app');
+  renderAll();
+}
+
+/* ---------- fridge: temperature + lock ---------- */
+let temp=4.6,out=false,unlocked=false,left=0,timer=null;
+const addLog=(k,v={})=>{S.log.unshift({k,v,at:Date.now()});S.log=S.log.slice(0,25);save();renderAlerts()};
+function renderTemp(){const s=temp.toFixed(1);$('#tv').textContent=s;$('#dtemp').textContent=s+'°'}
+function renderLock(){
+  $('#fridge').classList.toggle('open',unlocked);
+  $('#lockst').innerHTML=(unlocked?ICON.lockO:ICON.lockC)+`<span>${t(unlocked?'unlocked':'locked')}</span>`;
+  $('#cd').textContent=unlocked?t('relock',{s:left}):'';
+  $('#lockbtn').textContent=t(unlocked?'lockNow':'unlock');
+}
+function setLock(u,auto){
+  unlocked=u;clearInterval(timer);
+  if(u){left=S.prefs.auto;timer=setInterval(()=>{left--;if(left<=0)setLock(false,true);else renderLock()},1000);addLog('evUnlock')}
+  else addLog(auto?'evAuto':'evLock');
+  renderLock();
+}
+const tick=setInterval(()=>{
+  temp+=(unlocked?.22:0)+(5-temp)*.08+(Math.random()-.5)*.3;temp=Math.round(temp*10)/10;
+  const o=temp<S.prefs.min||temp>S.prefs.max;if(o&&!out)addLog('evTemp',{t:temp.toFixed(1)});out=o;renderTemp();
+},3000);
+
+/* ---------- PIN pad ---------- */
+let pin='';
+$('#pad').innerHTML=['1','2','3','4','5','6','7','8','9','x','0','del'].map(k=>`<button type="button" data-k="${k}" class="${k.length>1?'t':''}">${k==='x'?'<span data-t="cancel"></span>':k==='del'?'⌫':k}</button>`).join('');
+const drawDots=()=>$$('#dots i').forEach((d,i)=>d.classList.toggle('f',i<pin.length));
+const openPin=()=>{pin='';drawDots();$('#pinm').classList.add('on')};
+const closePin=()=>$('#pinm').classList.remove('on');
+function padKey(k){
+  if(k==='x')return closePin();
+  if(k==='del')pin=pin.slice(0,-1);else if(pin.length<4)pin+=k;
+  drawDots();
+  if(pin.length===4){
+    if(pin===S.prefs.pin){closePin();setLock(true)}
+    else{const d=$('#dots');d.classList.remove('shake');void d.offsetWidth;d.classList.add('shake');toast(t('pinWrong'));pin='';setTimeout(drawDots,350)}
+  }
+}
+
+/* ---------- ask dialog ---------- */
+let askFn=null;
+const ask=(q,fn)=>{$('#askq').textContent=q;$('#askyes').textContent=t('yes');askFn=fn;$('#askm').classList.add('on')};
+$('#askyes').addEventListener('click',()=>{$('#askm').classList.remove('on');askFn&&askFn()});
+$('#askno').addEventListener('click',()=>$('#askm').classList.remove('on'));
+
+/* ---------- add / edit form ---------- */
+let editing=null,fcat='med',photo='';
+const setFcat=c=>{fcat=c;$$('[data-fcat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fcat===c))};
+const showPhoto=()=>{const p=$('#f-prev');p.className='thumb '+fcat;p.innerHTML=photo?`<img src="${photo}" alt="">`:''};
+function setFormTitle(){$('#addh').textContent=t(editing?'editTitle':'addTitle');$('#f-del').hidden=!editing;$('#f-cancel').hidden=!editing}
+function resetForm(){editing=null;photo='';['code','name','exp','batch'].forEach(k=>$('#f-'+k).value='');$('#f-qty').value=1;setFcat('med');showPhoto();setFormTitle()}
+function openEdit(id){
+  const it=S.items.find(x=>x.id===id);if(!it)return;
+  editing=id;photo=it.photo||'';
+  $('#f-code').value=it.code||'';$('#f-name').value=it.name;$('#f-exp').value=it.exp;$('#f-batch').value=it.batch||'';$('#f-qty').value=it.qty;
+  setFcat(it.cat);showPhoto();setFormTitle();go('add');
+}
+function gs1(raw){
+  const s=raw.replace(/^\](d2|C1|Q3|e0)/,'').trim(),r={},G='\x1d';
+  if(s.includes('(')){const re=/\((\d{2,4})\)([^(]*)/g;let m;while((m=re.exec(s)))r[m[1]]=m[2].trim()}
+  else if(/^01\d{14}/.test(s)){let i=0;while(i<s.length){if(s[i]===G){i++;continue}const a=s.substr(i,2);
+    if(a==='01'){r['01']=s.substr(i+2,14);i+=16}
+    else if(a==='17'||a==='11'||a==='15'){r[a]=s.substr(i+2,6);i+=8}
+    else if(a==='10'||a==='21'){let j=s.indexOf(G,i+2);if(j<0)j=s.length;r[a]=s.slice(i+2,j);i=j}
+    else break}}
+  let exp='';const e=r['17'];
+  if(e&&/^\d{6}$/.test(e)){const y=2000+ +e.slice(0,2),mo=+e.slice(2,4);let d=+e.slice(4,6);if(!d)d=new Date(y,mo,0).getDate();exp=`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+  return{code:r['01']||s,batch:r['10']||'',exp};
+}
+function applyCode(raw){
+  const g=gs1(raw);$('#f-code').value=g.code;if(g.exp)$('#f-exp').value=g.exp;if(g.batch)$('#f-batch').value=g.batch;
+  const k=S.items.find(x=>x.code&&x.code===g.code&&x.id!==editing);
+  if(k&&!$('#f-name').value){$('#f-name').value=k.name;setFcat(k.cat);if(k.photo&&!photo)photo=k.photo;showPhoto()}
+}
+const toCanvas=(file,max)=>new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c)};img.onerror=rej;img.src=u});
+async function decode(file){
+  let c;try{c=await toCanvas(file,1400)}catch(e){return null}
+  if('BarcodeDetector' in window){try{const r=await new BarcodeDetector().detect(c);if(r[0])return r[0].rawValue}catch(e){}}
+  if(window.ZXing){try{const h=new Map();h.set(ZXing.DecodeHintType.TRY_HARDER,true);const res=await new ZXing.BrowserMultiFormatReader(h).decodeFromImageUrl(c.toDataURL('image/jpeg',.9));return res.getText()}catch(e){}}
+  return null;
+}
+/* live camera scanner: BarcodeDetector where the browser has it (Android Chrome), ZXing elsewhere (iPhone) */
+let stream=null,scanning=false,zx=null;
+async function openScanner(){
+  $('#camerr').hidden=true;$('#scanm').classList.add('on');const v=$('#vid');
+  try{
+    if(!navigator.mediaDevices?.getUserMedia)throw new Error('no camera');
+    if('BarcodeDetector' in window){
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+      v.srcObject=stream;await v.play();scanning=true;const bd=new BarcodeDetector();
+      const loop=async()=>{if(!scanning)return;try{const r=await bd.detect(v);if(r[0])return gotCode(r[0].rawValue)}catch(e){}setTimeout(loop,150)};loop();
+    }else if(window.ZXing){
+      const h=new Map();h.set(ZXing.DecodeHintType.TRY_HARDER,true);zx=new ZXing.BrowserMultiFormatReader(h);
+      await zx.decodeFromConstraints({video:{facingMode:'environment'}},v,res=>{if(res)gotCode(res.getText())});
+    }else throw new Error('no decoder');
+  }catch(e){$('#camerr').hidden=false}
+}
+function closeScanner(){scanning=false;if(zx){try{zx.reset()}catch(e){}zx=null}if(stream){stream.getTracks().forEach(k=>k.stop());stream=null}$('#vid').srcObject=null;$('#scanm').classList.remove('on')}
+function gotCode(raw){closeScanner();applyCode(raw);toast(t('scanned'))}
+$('#scanbtn').addEventListener('click',openScanner);
+$('#camclose').addEventListener('click',closeScanner);
+$('#scanf').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;closeScanner();toast(t('reading'));const raw=await decode(f);if(!raw)return toast(t('noScan'));applyCode(raw);toast(t('scanned'))});
+$('#f-code').addEventListener('change',e=>{if(e.target.value.trim())applyCode(e.target.value.trim())});
+$('#f-photo').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{photo=(await toCanvas(f,320)).toDataURL('image/jpeg',.8);showPhoto()}catch(err){}});
+$('#f').addEventListener('submit',e=>{
+  e.preventDefault();
+  const name=$('#f-name').value.trim(),exp=$('#f-exp').value;
+  if(!name||!exp)return toast(t('need'));
+  const rec={name,cat:fcat,qty:Math.max(0,parseInt($('#f-qty').value,10)||0),exp,code:$('#f-code').value.trim(),batch:$('#f-batch').value.trim(),photo};
+  if(editing)Object.assign(S.items.find(x=>x.id===editing),rec);else S.items.push({id:'i'+Date.now(),...rec});
+  save();toast(t('saved'));resetForm();renderAll();go('stock');
+});
+$('#f-cancel').addEventListener('click',()=>{resetForm();go('stock')});
+$('#f-del').addEventListener('click',()=>ask(t('delQ'),()=>{S.items=S.items.filter(x=>x.id!==editing);save();toast(t('deleted'));resetForm();renderAll();go('stock')}));
+
+/* ---------- settings ---------- */
+$('#p-pinbtn').addEventListener('click',()=>{const v=$('#p-pin').value.trim();if(!/^\d{4}$/.test(v))return toast(t('pinBad'));S.prefs.pin=v;save();$('#p-pin').value='';toast(t('pinSaved'))});
+['min','max','auto'].forEach(k=>$('#p-'+k).addEventListener('change',e=>{const v=parseFloat(e.target.value);if(!isNaN(v)){S.prefs[k]=k==='auto'?Math.min(600,Math.max(5,Math.round(v))):v;save();renderHome()}}));
+$('#p-reset').addEventListener('click',()=>ask(t('resetQ'),()=>{S.items=SAMPLE();S.log=[];save();resetForm();renderAll()}));
+$('#q').addEventListener('input',renderStock);
+
+/* ---------- clicks + routing ---------- */
+const SCR=['home','stock','add','alerts','prefs'];
+function go(n){if(location.hash!=='#'+n)location.hash=n;else show()}
+function show(){
+  const n=SCR.includes(location.hash.slice(1))?location.hash.slice(1):'home';
+  SCR.forEach(s=>$('#scr-'+s).classList.toggle('on',s===n));
+  $$('[data-go]').forEach(b=>{if(b.dataset.go===n)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  $('#main').scrollTop=0;
+}
+window.addEventListener('hashchange',show);
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.go){if(d.go==='add')resetForm();go(d.go)}
+  else if(d.q){const it=S.items.find(x=>x.id===d.id);if(it){it.qty=Math.max(0,it.qty+ +d.q);save();renderAll()}}
+  else if(d.edit)openEdit(d.edit);
+  else if(d.cat){cat=d.cat;renderStock()}
+  else if(d.fcat){setFcat(d.fcat);showPhoto()}
+  else if(d.st){const i=$('#f-qty');i.value=Math.max(0,(parseInt(i.value,10)||0)+ +d.st)}
+  else if(d.lang){S.prefs.lang=d.lang;save();applyLang()}
+  else if(d.day){const n=+d.day,a=S.prefs.days;if(a.includes(n)){if(a.length>1)S.prefs.days=a.filter(x=>x!==n)}else S.prefs.days=[...a,n].sort((x,y)=>y-x);save();renderAll()}
+  else if(d.k)padKey(d.k);
+  else if(b.id==='lockbtn'){if(unlocked)setLock(false);else openPin()}
+  else if(b.id==='langbtn'){S.prefs.lang=L()==='ar'?'en':'ar';save();applyLang()}
+});
+document.addEventListener('keydown',e=>{if(!$('#pinm').classList.contains('on'))return;if(/^\d$/.test(e.key))padKey(e.key);else if(e.key==='Backspace')padKey('del');else if(e.key==='Escape')closePin()});
+
+applyLang();renderTemp();show();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>

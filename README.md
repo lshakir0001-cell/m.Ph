@@ -1,6 +1,12 @@
-# Mini-medical-skincare-refregirator
-Designing and developing a smart, temperature-controlled mini fridge for storing medications and skincare products, integrated with a companion mobile application.
+# الصيدلية الصغيرة | Mini Pharmacy
 
-## App
+ثلاجة صغيرة ذكية تحفظ الأدوية ومنتجات العناية بالبشرة، وتحميها من الأطفال بقفل، ومعها تطبيق للجوال.
 
-The companion app is a web app (PWA) in the [`APP`](APP) folder. Open it in the phone browser and add it to the home screen. See [`APP/README.md`](APP/README.md).
+A smart, temperature-controlled mini fridge for medicines and skincare products, with a child lock and a companion phone app.
+
+**افتح التطبيق | Open the app:** https://lshakir0001-cell.github.io/m.Ph/
+
+| المجلد | وش فيه |
+|---|---|
+| [`APP`](APP) | التطبيق (تطبيق ويب PWA). الشرح في [`APP/README.md`](APP/README.md) |
+| [`Hardware`](Hardware) | كود ESP32: حساس الحرارة، والشاشة، والقفل |

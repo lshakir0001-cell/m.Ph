@@ -1,7 +1,7 @@
 {
-  "name": "ميني فارماسي",
-  "short_name": "m.Ph",
-  "description": "Mini Pharmacy: smart medicine and skincare fridge",
+  "name": "الصيدلية الصغيرة",
+  "short_name": "Mini Pharmacy",
+  "description": "Mini Pharmacy | الصيدلية الصغيرة: smart medicine and skincare fridge",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

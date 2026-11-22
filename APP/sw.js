@@ -1,6 +1,6 @@
 // Mini Pharmacy service worker: network first so the team's updates show up at once,
 // with a cached copy so the app still opens without internet.
-const CACHE = 'mph-v1';
+const CACHE = 'mph-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {

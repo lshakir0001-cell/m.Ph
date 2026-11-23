@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+/<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -180,18 +180,36 @@ nav button[aria-current=page] svg{color:var(--emd)}
       </svg>
       <div>
         <div class="lbl" data-t="temp">حرارة الثلاجة</div>
-        <div class="big"><span id="tv">4.6</span>°</div>
-        <div class="rng" id="trng"></div>
+
+<div class="big">
+  <span id="tv">--</span>°
+</div>
+
+<div class="rng" id="trng"></div>
+
+<!-- Real humidity from DHT22 -->
+<div style="margin-top:12px">
+  <div class="lbl" id="humidity-label">
+    الرطوبة داخل الثلاجة
+  </div>
+
+  <div class="big" style="font-size:36px">
+    <span id="hv">--</span>%
+  </div>
+</div>
+
+<!-- ESP32 connection status -->
+<div id="esp-status" style="font-size:13px;margin-top:8px">
+  ESP32: Connecting...
+</div>
         <div class="lock" id="lockst"></div>
         <div class="cd" id="cd"></div>
         <button class="btn" id="lockbtn" type="button"></button>
       </div>
     </div>
-    <p class="sim" data-t="sim"></p>
     <div class="tally" id="tally"></div>
     <h2 data-t="soon"></h2>
     <div id="soonlist"></div>
-    <p class="note" data-t="sample"></p>
   </section>
 
   <section class="scr" id="scr-stock">
@@ -270,11 +288,6 @@ nav button[aria-current=page] svg{color:var(--emd)}
     <div class="card"><b data-t="autolock"></b>
       <input type="number" id="p-auto" min="5" max="600" inputmode="numeric">
     </div>
-    <div class="card"><b data-t="users"></b>
-      <div class="users" id="users"></div>
-      <p class="note" data-t="sampleUsers"></p>
-    </div>
-    <button class="btn alt wide" type="button" id="p-reset" data-t="reset"></button>
   </section>
 </main>
 
@@ -335,7 +348,7 @@ const SAMPLE=()=>[
 const DEF={lang:'ar',pin:'1234',min:2,max:8,days:[30,7],auto:30};
 let S=null;
 try{S=JSON.parse(localStorage.getItem('mph-v1'))}catch(e){}
-if(!S||!Array.isArray(S.items))S={items:SAMPLE(),prefs:{...DEF},log:[]};
+if(!S||!Array.isArray(S.items))S={items:[],prefs:{...DEF},log:[]};
 S.prefs={...DEF,...S.prefs};
 const save=()=>{try{localStorage.setItem('mph-v1',JSON.stringify(S))}catch(e){}};
 const L=()=>S.prefs.lang;
@@ -387,7 +400,6 @@ function renderPrefs(){
   $$('[data-lang]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===L()));
   $('#p-min').value=S.prefs.min;$('#p-max').value=S.prefs.max;$('#p-auto').value=S.prefs.auto;
   $('#days').innerHTML=[60,30,14,7,3,1].map(d=>`<button type="button" data-day="${d}" aria-pressed="${S.prefs.days.includes(d)}">${d} ${t('days')}</button>`).join('');
-  $('#users').innerHTML=[['سارة','Sarah','admin'],['خالد','Khalid','member'],['نورة','Noura','member']].map(u=>`<div><b>${L()==='ar'?u[0]:u[1]}</b><span>${t(u[2])}</span></div>`).join('');
 }
 function renderAll(){renderHome();renderStock();renderAlerts();renderPrefs();setFormTitle()}
 function applyLang(){
@@ -398,11 +410,106 @@ function applyLang(){
   renderAll();
 }
 
+
+/* ---------- LIVE ESP32 CONNECTION ---------- */
+
+// Replace this IP with the one from your Serial Monitor
+const ESP32_IP = "192.168.8.195";
+
+async function updateSensorData() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 2500);
+
+  try {
+    const response = await fetch(
+      `http://${ESP32_IP}/api/sensor`,
+      {
+        cache: "no-store",
+        signal: controller.signal
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("ESP32 sensor unavailable");
+    }
+
+    const data = await response.json();
+
+    if (
+      !Number.isFinite(data.temperature) ||
+      !Number.isFinite(data.humidity)
+    ) {
+      throw new Error("Invalid sensor data");
+    }
+
+    // Update temperature
+    temp = data.temperature;
+    renderTemp();
+
+   
+    // Update humidity
+    document.getElementById("hv").textContent =
+      data.humidity.toFixed(1);
+
+    // Real F3BC Bluetooth connection status
+    const bluetoothStatus =
+      document.getElementById("esp-status");
+
+    if (data.bluetoothConnected === true) {
+      bluetoothStatus.textContent =
+        "● F3BC Bluetooth Connected";
+      bluetoothStatus.style.color = "#007a4d";
+    } else {
+      bluetoothStatus.textContent =
+        "● F3BC Bluetooth Disconnected";
+      bluetoothStatus.style.color = "#e5383b";
+    }
+
+    // Check temperature against configured limits
+    const outsideRange =
+      temp < S.prefs.min || temp > S.prefs.max;
+
+    if (outsideRange && !out) {
+      addLog("evTemp", { t: temp.toFixed(1) });
+    }
+
+    out = outsideRange;
+
+  } catch (error) {
+    console.error("ESP32 connection error:", error);
+
+    temp = NaN;
+    renderTemp();
+
+    document.getElementById("hv").textContent = "--";
+
+    document.getElementById("esp-status").textContent =
+  "● ESP32 Unreachable — Bluetooth Status Unknown";
+
+document.getElementById("esp-status").style.color =
+  "#e5383b";
+    out = false;
+
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// Request a measurement every 3 seconds
+setInterval(updateSensorData, 3000);
+
+// First reading immediately
+updateSensorData();
+
 /* ---------- fridge: temperature + lock ---------- */
-let temp=4.6,out=false,unlocked=false,left=0,timer=null;
+let temp=NaN,out=false,unlocked=false,left=0,timer=null;
 const addLog=(k,v={})=>{S.log.unshift({k,v,at:Date.now()});S.log=S.log.slice(0,25);save();renderAlerts()};
-function renderTemp(){const s=temp.toFixed(1);$('#tv').textContent=s;$('#dtemp').textContent=s+'°'}
-function renderLock(){
+function renderTemp() {
+  const s = Number.isFinite(temp) ? temp.toFixed(1) : "--";
+
+  $('#tv').textContent = s;
+  $('#dtemp').textContent = s + '°';
+}function renderLock(){
   $('#fridge').classList.toggle('open',unlocked);
   $('#lockst').innerHTML=(unlocked?ICON.lockO:ICON.lockC)+`<span>${t(unlocked?'unlocked':'locked')}</span>`;
   $('#cd').textContent=unlocked?t('relock',{s:left}):'';
@@ -414,10 +521,7 @@ function setLock(u,auto){
   else addLog(auto?'evAuto':'evLock');
   renderLock();
 }
-const tick=setInterval(()=>{
-  temp+=(unlocked?.22:0)+(5-temp)*.08+(Math.random()-.5)*.3;temp=Math.round(temp*10)/10;
-  const o=temp<S.prefs.min||temp>S.prefs.max;if(o&&!out)addLog('evTemp',{t:temp.toFixed(1)});out=o;renderTemp();
-},3000);
+
 
 /* ---------- PIN pad ---------- */
 let pin='';
@@ -514,7 +618,6 @@ $('#f-del').addEventListener('click',()=>ask(t('delQ'),()=>{S.items=S.items.filt
 /* ---------- settings ---------- */
 $('#p-pinbtn').addEventListener('click',()=>{const v=$('#p-pin').value.trim();if(!/^\d{4}$/.test(v))return toast(t('pinBad'));S.prefs.pin=v;save();$('#p-pin').value='';toast(t('pinSaved'))});
 ['min','max','auto'].forEach(k=>$('#p-'+k).addEventListener('change',e=>{const v=parseFloat(e.target.value);if(!isNaN(v)){S.prefs[k]=k==='auto'?Math.min(600,Math.max(5,Math.round(v))):v;save();renderHome()}}));
-$('#p-reset').addEventListener('click',()=>ask(t('resetQ'),()=>{S.items=SAMPLE();S.log=[];save();resetForm();renderAll()}));
 $('#q').addEventListener('input',renderStock);
 
 /* ---------- clicks + routing ---------- */
@@ -544,6 +647,12 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{if(!$('#pinm').classList.contains('on'))return;if(/^\d$/.test(e.key))padKey(e.key);else if(e.key==='Backspace')padKey('del');else if(e.key==='Escape')closePin()});
 
 applyLang();renderTemp();show();
+// Physical F3BC lock integration status
+const lockButton = document.getElementById("lockbtn");
+
+lockButton.disabled = true;
+lockButton.style.opacity = "0.5";
+lockButton.textContent = "F3BC — Setup required";
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 </script>

@@ -127,19 +127,35 @@ def svg(form,c,name,sub,cat):
         body=f'''<rect x="64" y="20" width="32" height="18" rx="3" fill="{c}"/><rect x="48" y="38" width="64" height="100" rx="12" fill="#fff" stroke="{c}" stroke-width="2"/>
 <rect x="48" y="62" width="64" height="24" fill="{c}"/>{label(80,79,60,b,13)}{label(80,108,58,sub,11,c)}'''
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"><rect width="160" height="160" fill="{bg}"/>{body}</svg>\n'
+CRED=json.load(open(pathlib.Path(__file__).resolve().parent/'photo_credits.json'))
 cat=[]
 for (i,en,ar,c,form,col,sub,kw) in P:
     open(f'{OUT}/img/{i}.svg','w').write(svg(form,col,en,sub,c))
     ar=ar.translate(str.maketrans('٠١٢٣٤٥٦٧٨٩','0123456789'))
-    cat.append({'id':i,'en':en,'ar':ar,'cat':c,'img':f'catalog/img/{i}.svg','kw':kw,'gtin':[]})
+    e={'id':i,'en':en,'ar':ar,'cat':c,'img':f'catalog/img/{i}.svg','kw':kw,'gtin':[]}
+    if i in CRED:  # real photo with an open licence (see tools/photo_credits.json)
+        cr=CRED[i]; e['img']=f'catalog/img/{i}.jpg'; e['credit']=f"{cr['by']}, {cr['lic']}"; e['src']=cr['src']
+        if cr.get('gtin'): e['gtin']=[cr['gtin']]
+    cat.append(e)
 with open(f'{OUT}/catalog.js','w') as f:
     f.write('''/* Mini Pharmacy built-in catalog: common medicines and skincare in Saudi Arabia.
    Each entry: id, en (English name), ar (Arabic name), cat (med|skin), img (picture path),
    kw (extra search words, e.g. the generic/scientific name), gtin (box barcodes, GTIN-14, if known).
-   The pictures in catalog/img are simple drawings, not the companies' real box photos.
-   To use a real photo: save it as catalog/img/<id>.jpg and change img to that path.
+   Pictures: real photos (.jpg) come from Wikimedia Commons, Open Food Facts and Open Beauty Facts
+   under open licences; credit + src say who took each one (also listed in catalog/credits.html).
+   Products without an open-licence photo use a simple drawing (.svg).
+   This file is made by tools/make_catalog.py: edit that script and run it again.
    To add a product: copy one line and change it. */
 window.MPH_CATALOG=[\n''')
     f.write(',\n'.join(json.dumps(x,ensure_ascii=False) for x in cat))
     f.write('\n];\n')
 print(len(cat))
+
+rows=''.join(f'<tr><td>{esc(x["en"])}</td><td><a href="{esc(x["src"])}">{esc(x["credit"])}</a></td></tr>' for x in cat if x.get('credit'))
+open(f'{OUT}/credits.html','w').write(f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Photo credits</title>
+<style>body{{font:15px/1.5 system-ui,sans-serif;margin:0 auto;max-width:720px;padding:16px;background:#fff;color:#111}}td{{padding:6px 8px;border-bottom:1px solid #ddd;vertical-align:top}}a{{color:#00754a;overflow-wrap:anywhere}}</style></head><body>
+<h1>Photo credits / مصادر الصور</h1>
+<p>These product photos are used under their open licences (Creative Commons or public domain). Photos were resized and cropped. Other products show a simple drawing made for this app.</p>
+<p dir="rtl">صور المنتجات هذي مأخوذة من مواقع تسمح بإعادة استخدامها، ومكتوب جنب كل صورة مين صوّرها ورخصتها. تم تصغير الصور وقصّها. باقي المنتجات لها رسمة بسيطة سويناها للتطبيق.</p>
+<table>{rows}</table><p><a href="../">Back to the app / رجوع للتطبيق</a></p></body></html>
+""")

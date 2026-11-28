@@ -1,10 +1,20 @@
 // Mini Pharmacy service worker: network first so the team's updates show up at once,
 // with a cached copy so the app still opens without internet.
-const CACHE = 'mph-v3';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
+const CACHE = 'mph-v4';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './catalog/catalog.js'];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
+  // also keep the medicine pictures listed in catalog.js, so they show without internet
+  e.waitUntil(
+    caches.open(CACHE).then(async (c) => {
+      await c.addAll(SHELL);
+      try {
+        const txt = await (await fetch('./catalog/catalog.js')).text();
+        const imgs = [...new Set(txt.match(/catalog\/img\/[\w.-]+/g) || [])].map((p) => './' + p);
+        await c.addAll(imgs);
+      } catch (err) {}
+    })
+  );
   self.skipWaiting();
 });
 

@@ -1,4 +1,4 @@
-/<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -109,6 +109,15 @@ input::placeholder{color:var(--mute)}
 .ph{display:flex;gap:12px;align-items:center}
 .ph .thumb{width:72px;height:72px}
 .ph label{display:inline-flex;align-items:center;min-height:46px;padding:0 16px;border:1.5px solid var(--ink);border-radius:10px;font-weight:700;cursor:pointer;position:relative}
+.namebox{position:relative}
+.sug{position:absolute;inset-inline:0;top:calc(100% + 4px);z-index:5;background:var(--bg);border:1.5px solid var(--ink);border-radius:12px;max-height:320px;overflow-y:auto;box-shadow:0 8px 24px rgb(0 0 0/.15)}
+.sug:empty{display:none}
+.sug button{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;align-items:center;width:100%;padding:8px 10px;border:0;border-bottom:1px solid var(--line);background:none;text-align:start;color:inherit}
+.sug button:last-child{border-bottom:0}
+.sug button:hover,.sug button:focus-visible{background:var(--line)}
+.sug .thumb{width:44px;height:44px;font-size:18px}
+.sug b{display:block;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.sug small{display:block;color:var(--mute);font-size:13px;overflow-wrap:anywhere}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
 .actions .btn{flex:1 1 120px}
 nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);background:var(--bg)}
@@ -231,7 +240,7 @@ nav button[aria-current=page] svg{color:var(--emd)}
     </button>
     <form id="f" novalidate>
       <label class="f"><span data-t="code"></span><input type="text" id="f-code" inputmode="text" autocomplete="off" dir="ltr"></label>
-      <label class="f"><span data-t="name"></span><input type="text" id="f-name" autocomplete="off" dir="auto"></label>
+      <div class="f"><label for="f-name" data-t="name" style="display:block;font-size:14px;font-weight:500;margin-bottom:4px"></label><div class="namebox"><input type="text" id="f-name" autocomplete="off" dir="auto" data-tp="nameHint" role="combobox" aria-autocomplete="list" aria-controls="sug" aria-expanded="false"><div class="sug" id="sug" role="listbox"></div></div></div>
       <div class="f"><span data-t="cat"></span>
         <div class="seg" id="fcats">
           <button type="button" data-fcat="med" aria-pressed="true" data-t="med"></button>
@@ -249,6 +258,7 @@ nav button[aria-current=page] svg{color:var(--emd)}
         <div class="ph"><div class="thumb" id="f-prev"></div>
           <label><input class="hid" type="file" id="f-photo" accept="image/*" capture="environment"><span data-t="photoBtn"></span></label>
         </div>
+        <p class="note" id="f-pnote" hidden data-t="autoPhoto"></p>
       </div>
       <div class="actions">
         <button class="btn" type="submit" data-t="save"></button>
@@ -331,12 +341,13 @@ nav button[aria-current=page] svg{color:var(--emd)}
 <div class="toast" id="toast" role="status"></div>
 
 <script async src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="catalog/catalog.js"></script>
 <script>
 {
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const T={
-ar:{app:'الصيدلية الصغيرة',home:'الرئيسية',stock:'المخزون',add:'إضافة',alerts:'التنبيهات',prefs:'الإعدادات',temp:'حرارة الثلاجة',range:'النطاق المناسب {a} إلى {b}°م',locked:'الثلاجة مقفلة',unlocked:'الثلاجة مفتوحة',unlock:'افتح القفل',lockNow:'اقفل الحين',relock:'تنقفل تلقائيًا بعد {s} ثانية',sim:'الثلاجة هنا محاكاة، وأول ما نربط ESP32 تصير القراءات حقيقية.',total:'منتج',soonN:'قرّب ينتهي',expN:'منتهي',soon:'قرّب ينتهي',allGood:'كل المنتجات صلاحيتها سليمة.',all:'الكل',med:'أدوية',skin:'سكن كير',search:'ابحث بالاسم أو الكود',ok:'سليم',warn:'قرّب',bad:'منتهي',left:'باقي {n} يوم',ago:'انتهى قبل {n} يوم',today:'ينتهي اليوم',addTitle:'إضافة منتج',editTitle:'تعديل منتج',scan:'امسح الكود',scanHint:'وجّه الكاميرا على الباركود أو مربع DataMatrix اللي على العلبة',camHint:'خلّ الكود داخل المربع الأخضر',camErr:'ما انفتحت الكاميرا. اسمح للتطبيق يستخدم الكاميرا، أو صوّر الكود بدالها.',usePhoto:'صوّر الكود بدال',code:'الكود',name:'اسم المنتج',cat:'التصنيف',qty:'الكمية',exp:'تاريخ الانتهاء',batch:'رقم التشغيلة',photo:'صورة المنتج',photoBtn:'صوّر المنتج',save:'احفظ',del:'احذف',cancel:'إلغاء',saved:'انحفظ المنتج',deleted:'انحذف المنتج',reading:'نقرأ الكود…',scanned:'انقرأ الكود وتعبّت البيانات',noScan:'ما انقرأ الكود. صوّره من قريب أو اكتبه يدوي.',need:'اكتب الاسم وتاريخ الانتهاء',pinTitle:'رمز القفل',pinHint:'الرمز التجريبي 1234',pinWrong:'الرمز غلط',evUnlock:'انفتح القفل من التطبيق',evLock:'انقفلت الثلاجة',evAuto:'انقفلت الثلاجة تلقائيًا',evTemp:'الحرارة طلعت عن النطاق: {t}°',alExp:'{name} منتهي الصلاحية',alSoon:'{name} ينتهي بعد {n} يوم',alToday:'{name} ينتهي اليوم',noAlerts:'ما فيه تنبيهات الحين',log:'سجل الثلاجة',noLog:'ما فيه شي للحين',lang:'اللغة',pin:'رمز القفل',newPin:'رمز جديد من 4 أرقام',change:'غيّر',pinSaved:'تغيّر الرمز',pinBad:'الرمز لازم 4 أرقام',tempRange:'نطاق الحرارة (°م)',min:'أدنى',max:'أعلى',remind:'نبّهني قبل الانتهاء بـ',days:'يوم',autolock:'القفل التلقائي بعد (ثانية)',users:'المستخدمين',sampleUsers:'الأسماء تجريبية للعرض.',admin:'مسؤول',member:'عضو',reset:'رجّع البيانات التجريبية',resetQ:'أكيد؟ بتنمسح تعديلاتك.',yes:'إيه',delQ:'تحذف هذا المنتج؟',sample:'المنتجات الموجودة تجريبية للعرض.',other:'EN'},
-en:{app:'Mini Pharmacy',home:'Home',stock:'Stock',add:'Add',alerts:'Alerts',prefs:'Settings',temp:'Fridge temperature',range:'Safe range {a} to {b}°C',locked:'Fridge is locked',unlocked:'Fridge is unlocked',unlock:'Unlock',lockNow:'Lock now',relock:'Relocks in {s}s',sim:'The fridge is simulated here. Readings become real once we connect the ESP32.',total:'Items',soonN:'Expiring',expN:'Expired',soon:'Expiring soon',allGood:'Everything is in date.',all:'All',med:'Medicines',skin:'Skincare',search:'Search by name or code',ok:'Good',warn:'Soon',bad:'Expired',left:'{n} days left',ago:'Expired {n} days ago',today:'Expires today',addTitle:'Add product',editTitle:'Edit product',scan:'Scan the code',scanHint:'Point the camera at the barcode or DataMatrix square on the box',camHint:'Keep the code inside the green square',camErr:"Couldn't open the camera. Allow camera access, or take a photo instead.",usePhoto:'Use a photo instead',code:'Code',name:'Product name',cat:'Category',qty:'Quantity',exp:'Expiry date',batch:'Batch number',photo:'Product photo',photoBtn:'Take photo',save:'Save',del:'Delete',cancel:'Cancel',saved:'Product saved',deleted:'Product deleted',reading:'Reading the code…',scanned:'Code read, details filled in',noScan:"Couldn't read the code. Try a closer photo or type it in.",need:'Add a name and expiry date',pinTitle:'Lock PIN',pinHint:'Sample PIN: 1234',pinWrong:'Wrong PIN',evUnlock:'Unlocked from the app',evLock:'Fridge locked',evAuto:'Fridge locked automatically',evTemp:'Temperature out of range: {t}°',alExp:'{name} has expired',alSoon:'{name} expires in {n} days',alToday:'{name} expires today',noAlerts:'No alerts right now',log:'Fridge log',noLog:'Nothing yet',lang:'Language',pin:'Lock PIN',newPin:'New 4-digit PIN',change:'Change',pinSaved:'PIN changed',pinBad:'PIN must be 4 digits',tempRange:'Temperature range (°C)',min:'Min',max:'Max',remind:'Remind me before expiry',days:'days',autolock:'Auto-lock after (seconds)',users:'Users',sampleUsers:'Sample names for the demo.',admin:'Admin',member:'Member',reset:'Restore sample data',resetQ:'Sure? Your changes will be cleared.',yes:'Yes',delQ:'Delete this product?',sample:'The products shown are samples.',other:'ع'}
+ar:{app:'الصيدلية الصغيرة',home:'الرئيسية',stock:'المخزون',add:'إضافة',alerts:'التنبيهات',prefs:'الإعدادات',temp:'حرارة الثلاجة',range:'النطاق المناسب {a} إلى {b}°م',locked:'الثلاجة مقفلة',unlocked:'الثلاجة مفتوحة',unlock:'افتح القفل',lockNow:'اقفل الحين',relock:'تنقفل تلقائيًا بعد {s} ثانية',sim:'الثلاجة هنا محاكاة، وأول ما نربط ESP32 تصير القراءات حقيقية.',total:'منتج',soonN:'قرّب ينتهي',expN:'منتهي',soon:'قرّب ينتهي',allGood:'كل المنتجات صلاحيتها سليمة.',all:'الكل',med:'أدوية',skin:'سكن كير',search:'ابحث بالاسم أو الكود',ok:'سليم',warn:'قرّب',bad:'منتهي',left:'باقي {n} يوم',ago:'انتهى قبل {n} يوم',today:'ينتهي اليوم',addTitle:'إضافة منتج',editTitle:'تعديل منتج',scan:'امسح الكود',scanHint:'وجّه الكاميرا على الباركود أو مربع DataMatrix اللي على العلبة',camHint:'خلّ الكود داخل المربع الأخضر',camErr:'ما انفتحت الكاميرا. اسمح للتطبيق يستخدم الكاميرا، أو صوّر الكود بدالها.',usePhoto:'صوّر الكود بدال',code:'الكود',name:'اسم المنتج',cat:'التصنيف',qty:'الكمية',exp:'تاريخ الانتهاء',batch:'رقم التشغيلة',photo:'صورة المنتج',photoBtn:'صوّر المنتج',save:'احفظ',del:'احذف',cancel:'إلغاء',saved:'انحفظ المنتج',deleted:'انحذف المنتج',reading:'نقرأ الكود…',scanned:'انقرأ الكود وتعبّت البيانات',noScan:'ما انقرأ الكود. صوّره من قريب أو اكتبه يدوي.',need:'اكتب الاسم وتاريخ الانتهاء',pinTitle:'رمز القفل',pinHint:'الرمز التجريبي 1234',pinWrong:'الرمز غلط',evUnlock:'انفتح القفل من التطبيق',evLock:'انقفلت الثلاجة',evAuto:'انقفلت الثلاجة تلقائيًا',evTemp:'الحرارة طلعت عن النطاق: {t}°',alExp:'{name} منتهي الصلاحية',alSoon:'{name} ينتهي بعد {n} يوم',alToday:'{name} ينتهي اليوم',noAlerts:'ما فيه تنبيهات الحين',log:'سجل الثلاجة',noLog:'ما فيه شي للحين',lang:'اللغة',pin:'رمز القفل',newPin:'رمز جديد من 4 أرقام',change:'غيّر',pinSaved:'تغيّر الرمز',pinBad:'الرمز لازم 4 أرقام',tempRange:'نطاق الحرارة (°م)',min:'أدنى',max:'أعلى',remind:'نبّهني قبل الانتهاء بـ',days:'يوم',autolock:'القفل التلقائي بعد (ثانية)',users:'المستخدمين',sampleUsers:'الأسماء تجريبية للعرض.',admin:'مسؤول',member:'عضو',reset:'رجّع البيانات التجريبية',resetQ:'أكيد؟ بتنمسح تعديلاتك.',yes:'إيه',delQ:'تحذف هذا المنتج؟',sample:'المنتجات الموجودة تجريبية للعرض.',other:'EN',nameHint:'اكتب أول حروف الاسم، مثل بنادول',autoPhoto:'الصورة انضافت تلقائيًا من قائمة التطبيق. تقدر تصوّر العلبة الحقيقية بدالها.',mine:'من منتجاتك',online:'لقينا المنتج في الإنترنت وتعبّت بياناته'},
+en:{app:'Mini Pharmacy',home:'Home',stock:'Stock',add:'Add',alerts:'Alerts',prefs:'Settings',temp:'Fridge temperature',range:'Safe range {a} to {b}°C',locked:'Fridge is locked',unlocked:'Fridge is unlocked',unlock:'Unlock',lockNow:'Lock now',relock:'Relocks in {s}s',sim:'The fridge is simulated here. Readings become real once we connect the ESP32.',total:'Items',soonN:'Expiring',expN:'Expired',soon:'Expiring soon',allGood:'Everything is in date.',all:'All',med:'Medicines',skin:'Skincare',search:'Search by name or code',ok:'Good',warn:'Soon',bad:'Expired',left:'{n} days left',ago:'Expired {n} days ago',today:'Expires today',addTitle:'Add product',editTitle:'Edit product',scan:'Scan the code',scanHint:'Point the camera at the barcode or DataMatrix square on the box',camHint:'Keep the code inside the green square',camErr:"Couldn't open the camera. Allow camera access, or take a photo instead.",usePhoto:'Use a photo instead',code:'Code',name:'Product name',cat:'Category',qty:'Quantity',exp:'Expiry date',batch:'Batch number',photo:'Product photo',photoBtn:'Take photo',save:'Save',del:'Delete',cancel:'Cancel',saved:'Product saved',deleted:'Product deleted',reading:'Reading the code…',scanned:'Code read, details filled in',noScan:"Couldn't read the code. Try a closer photo or type it in.",need:'Add a name and expiry date',pinTitle:'Lock PIN',pinHint:'Sample PIN: 1234',pinWrong:'Wrong PIN',evUnlock:'Unlocked from the app',evLock:'Fridge locked',evAuto:'Fridge locked automatically',evTemp:'Temperature out of range: {t}°',alExp:'{name} has expired',alSoon:'{name} expires in {n} days',alToday:'{name} expires today',noAlerts:'No alerts right now',log:'Fridge log',noLog:'Nothing yet',lang:'Language',pin:'Lock PIN',newPin:'New 4-digit PIN',change:'Change',pinSaved:'PIN changed',pinBad:'PIN must be 4 digits',tempRange:'Temperature range (°C)',min:'Min',max:'Max',remind:'Remind me before expiry',days:'days',autolock:'Auto-lock after (seconds)',users:'Users',sampleUsers:'Sample names for the demo.',admin:'Admin',member:'Member',reset:'Restore sample data',resetQ:'Sure? Your changes will be cleared.',yes:'Yes',delQ:'Delete this product?',sample:'The products shown are samples.',other:'ع',nameHint:'Type the first letters, e.g. Panadol',autoPhoto:'Photo added automatically from the app list. You can take a photo of the real box instead.',mine:'From your products',online:'Found this product online and filled it in'}
 };
 const SAMPLE=()=>[
  {id:'s1',name:'Panadol 500mg',cat:'med',qty:2,exp:'2027-08-31',code:'06285074000123',batch:'PA2291',photo:''},
@@ -349,6 +360,7 @@ const DEF={lang:'ar',pin:'1234',min:2,max:8,days:[30,7],auto:30};
 let S=null;
 try{S=JSON.parse(localStorage.getItem('mph-v1'))}catch(e){}
 if(!S||!Array.isArray(S.items))S={items:[],prefs:{...DEF},log:[]};
+if(!Array.isArray(S.lib))S.lib=[];
 S.prefs={...DEF,...S.prefs};
 const save=()=>{try{localStorage.setItem('mph-v1',JSON.stringify(S))}catch(e){}};
 const L=()=>S.prefs.lang;
@@ -364,7 +376,7 @@ const toast=m=>{const e=$('#toast');e.textContent=m;e.classList.add('on');clearT
 const ICON={lockC:'<svg viewBox="0 0 20 20"><path d="M6 9V6a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="9" width="14" height="10" rx="2" fill="currentColor"/></svg>',lockO:'<svg viewBox="0 0 20 20"><path d="M6 9V6a4 4 0 0 1 8 0" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="9" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>'};
 
 /* ---------- rendering ---------- */
-const thumb=it=>`<div class="thumb ${it.cat}">${it.photo?`<img src="${it.photo}" alt="">`:esc((it.name.trim()[0]||'?').toUpperCase())}</div>`;
+const thumb=it=>`<div class="thumb ${it.cat}">${it.photo?`<img src="${esc(it.photo)}" alt="" loading="lazy">`:esc((it.name.trim()[0]||'?').toUpperCase())}</div>`;
 const itemHTML=it=>{const d=daysLeft(it.exp),st=status(d);return `<div class="item">${thumb(it)}<button type="button" class="info" data-edit="${it.id}"><b dir="auto">${esc(it.name)}</b><span class="meta"><span class="pill ${st}">${t(st)}</span><span>${fmtD(it.exp)}</span><span>${expTxt(d)}</span></span></button><div class="qty"><button type="button" data-q="-1" data-id="${it.id}" aria-label="-">−</button><span>${it.qty}</span><button type="button" data-q="1" data-id="${it.id}" aria-label="+">+</button></div></div>`};
 const sorted=()=>[...S.items].sort((a,b)=>daysLeft(a.exp)-daysLeft(b.exp));
 function drawShelf(){
@@ -546,14 +558,14 @@ $('#askyes').addEventListener('click',()=>{$('#askm').classList.remove('on');ask
 $('#askno').addEventListener('click',()=>$('#askm').classList.remove('on'));
 
 /* ---------- add / edit form ---------- */
-let editing=null,fcat='med',photo='';
+let editing=null,fcat='med',photo='',autoPhoto=false;
 const setFcat=c=>{fcat=c;$$('[data-fcat]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.fcat===c))};
-const showPhoto=()=>{const p=$('#f-prev');p.className='thumb '+fcat;p.innerHTML=photo?`<img src="${photo}" alt="">`:''};
+const showPhoto=()=>{const p=$('#f-prev');p.className='thumb '+fcat;p.innerHTML=photo?`<img src="${esc(photo)}" alt="">`:'';$('#f-pnote').hidden=!(photo&&autoPhoto)};
 function setFormTitle(){$('#addh').textContent=t(editing?'editTitle':'addTitle');$('#f-del').hidden=!editing;$('#f-cancel').hidden=!editing}
-function resetForm(){editing=null;photo='';['code','name','exp','batch'].forEach(k=>$('#f-'+k).value='');$('#f-qty').value=1;setFcat('med');showPhoto();setFormTitle()}
+function resetForm(){editing=null;photo='';autoPhoto=false;closeSug();['code','name','exp','batch'].forEach(k=>$('#f-'+k).value='');$('#f-qty').value=1;setFcat('med');showPhoto();setFormTitle()}
 function openEdit(id){
   const it=S.items.find(x=>x.id===id);if(!it)return;
-  editing=id;photo=it.photo||'';
+  editing=id;photo=it.photo||'';autoPhoto=false;
   $('#f-code').value=it.code||'';$('#f-name').value=it.name;$('#f-exp').value=it.exp;$('#f-batch').value=it.batch||'';$('#f-qty').value=it.qty;
   setFcat(it.cat);showPhoto();setFormTitle();go('add');
 }
@@ -571,8 +583,62 @@ function gs1(raw){
 }
 function applyCode(raw){
   const g=gs1(raw);$('#f-code').value=g.code;if(g.exp)$('#f-exp').value=g.exp;if(g.batch)$('#f-batch').value=g.batch;
-  const k=S.items.find(x=>x.code&&x.code===g.code&&x.id!==editing);
-  if(k&&!$('#f-name').value){$('#f-name').value=k.name;setFcat(k.cat);if(k.photo&&!photo)photo=k.photo;showPhoto()}
+  if($('#f-name').value.trim())return;
+  const k=S.items.find(x=>x.code&&x.code===g.code&&x.id!==editing)||S.lib.find(x=>x.code&&x.code===g.code);
+  if(k)return fillFrom({name:k.name,cat:k.cat,photo:k.photo});
+  const c=CAT.find(x=>(x.gtin||[]).some(n=>sameCode(n,g.code)));
+  if(c)return fillFrom(fromCat(c));
+  lookupOnline(g.code);
+}
+/* ---------- built-in list of medicine names with pictures (catalog/catalog.js) + what this family saved before ---------- */
+const CAT=Array.isArray(window.MPH_CATALOG)?window.MPH_CATALOG:[];
+const norm=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f\u064b-\u065f\u0670\u0640]/g,'')
+  .replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/گ/g,'ك')
+  .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^a-z0-9\u0600-\u06ff%+.]+/g,' ').trim();
+const sameCode=(a,b)=>String(a).replace(/^0+/,'')===String(b).replace(/^0+/,'');
+const fromCat=c=>({name:L()==='ar'?c.ar:c.en,cat:c.cat,photo:c.img,auto:true,sub:L()==='ar'?c.en:c.ar});
+function findSug(q){
+  const n=norm(q);if(!n)return[];const words=n.split(' ');
+  const hit=txt=>{const h=norm(txt);return words.every(w=>h.includes(w))?(h.startsWith(n)||h.split(' ').some(x=>x.startsWith(words[0]))?2:1):0};
+  const out=[],seen=new Set();
+  S.lib.forEach(x=>{const sc=hit(x.name);if(sc){seen.add(norm(x.name));out.push({sc:sc+2,name:x.name,cat:x.cat,photo:x.photo,sub:t('mine')})}});
+  CAT.forEach(c=>{const sc=Math.max(hit(c.en),hit(c.ar),hit(c.kw)?1:0);const r=fromCat(c);if(sc&&!seen.has(norm(r.name)))out.push({sc,...r})});
+  return out.sort((a,b)=>b.sc-a.sc).slice(0,8);
+}
+let sugList=[];
+function closeSug(){sugList=[];const b=$('#sug');if(b)b.innerHTML='';$('#f-name')?.setAttribute('aria-expanded','false')}
+function openSug(){
+  sugList=findSug($('#f-name').value);
+  $('#sug').innerHTML=sugList.map((x,i)=>`<button type="button" role="option" data-sug="${i}">${thumb(x)}<span><b dir="auto">${esc(x.name)}</b><small dir="auto">${esc(x.sub||'')}</small></span></button>`).join('');
+  $('#f-name').setAttribute('aria-expanded',sugList.length?'true':'false');
+}
+function fillFrom(x){
+  $('#f-name').value=x.name;setFcat(x.cat);
+  if(x.photo&&(!photo||autoPhoto)){photo=x.photo;autoPhoto=!!x.auto}
+  showPhoto();closeSug();
+}
+/* products the family added before: next time the name and their own photo fill in by themselves */
+function remember(r){
+  if(!r.name)return;const n=norm(r.name);
+  let k=S.lib.find(x=>(r.code&&x.code===r.code)||norm(x.name)===n);
+  if(!k){k={};S.lib.unshift(k)}
+  Object.assign(k,{name:r.name,cat:r.cat,code:r.code||k.code||'',photo:r.photo||k.photo||''});
+  S.lib=S.lib.slice(0,200);
+}
+/* unknown barcode: ask the free Open Beauty Facts / Open Food Facts databases (mostly skincare and supplements) */
+async function lookupOnline(code){
+  const ean=String(code).replace(/^0+(?=\d{13}$)/,'');
+  if(!/^\d{8,14}$/.test(ean)||!navigator.onLine)return;
+  for(const [host,cat] of [['world.openbeautyfacts.org','skin'],['world.openfoodfacts.org','med']]){
+    try{
+      const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),5000);
+      const r=await fetch(`https://${host}/api/v2/product/${ean}.json?fields=product_name,brands,image_front_small_url`,{signal:ac.signal});clearTimeout(tm);
+      const j=await r.json();const p=j&&j.status===1&&j.product;
+      if(p&&p.product_name){if($('#f-name').value.trim())return;
+        const nm=[p.brands&&!p.product_name.toLowerCase().includes(String(p.brands).split(',')[0].toLowerCase())?String(p.brands).split(',')[0]:'',p.product_name].filter(Boolean).join(' ');
+        fillFrom({name:nm,cat,photo:p.image_front_small_url||'',auto:true});toast(t('online'));return}
+    }catch(e){}
+  }
 }
 const toCanvas=(file,max)=>new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c)};img.onerror=rej;img.src=u});
 async function decode(file){
@@ -603,13 +669,25 @@ $('#scanbtn').addEventListener('click',openScanner);
 $('#camclose').addEventListener('click',closeScanner);
 $('#scanf').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;closeScanner();toast(t('reading'));const raw=await decode(f);if(!raw)return toast(t('noScan'));applyCode(raw);toast(t('scanned'))});
 $('#f-code').addEventListener('change',e=>{if(e.target.value.trim())applyCode(e.target.value.trim())});
-$('#f-photo').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{photo=(await toCanvas(f,320)).toDataURL('image/jpeg',.8);showPhoto()}catch(err){}});
+$('#f-photo').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{photo=(await toCanvas(f,320)).toDataURL('image/jpeg',.8);autoPhoto=false;showPhoto()}catch(err){}});
+$('#f-name').addEventListener('input',openSug);
+$('#f-name').addEventListener('focus',()=>{if($('#f-name').value.trim())openSug()});
+$('#f-name').addEventListener('keydown',e=>{if(e.key==='Escape')closeSug();else if(e.key==='ArrowDown'&&sugList.length){e.preventDefault();$('#sug button')?.focus()}});
+$('#sug').addEventListener('keydown',e=>{const b=e.target.closest('button');if(!b)return;if(e.key==='ArrowDown'){e.preventDefault();(b.nextElementSibling||b).focus()}else if(e.key==='ArrowUp'){e.preventDefault();(b.previousElementSibling||$('#f-name')).focus()}else if(e.key==='Escape'){closeSug();$('#f-name').focus()}});
+$('#sug').addEventListener('mousedown',e=>e.preventDefault());
+document.addEventListener('focusin',e=>{if(!e.target.closest('.namebox'))closeSug()});
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('.namebox'))closeSug()});
+/* typed the full name without tapping a suggestion: still add the picture */
+$('#f-name').addEventListener('change',()=>{if(photo&&!autoPhoto)return;const n=norm($('#f-name').value);if(!n)return;
+  const m=S.lib.find(x=>norm(x.name)===n)||CAT.find(c=>norm(c.en)===n||norm(c.ar)===n);
+  if(m){const x=m.id?fromCat(m):m;if(x.photo){photo=x.photo;autoPhoto=!!x.auto;setFcat(x.cat);showPhoto()}}});
 $('#f').addEventListener('submit',e=>{
   e.preventDefault();
   const name=$('#f-name').value.trim(),exp=$('#f-exp').value;
   if(!name||!exp)return toast(t('need'));
   const rec={name,cat:fcat,qty:Math.max(0,parseInt($('#f-qty').value,10)||0),exp,code:$('#f-code').value.trim(),batch:$('#f-batch').value.trim(),photo};
   if(editing)Object.assign(S.items.find(x=>x.id===editing),rec);else S.items.push({id:'i'+Date.now(),...rec});
+  remember(rec);
   save();toast(t('saved'));resetForm();renderAll();go('stock');
 });
 $('#f-cancel').addEventListener('click',()=>{resetForm();go('stock')});
@@ -637,6 +715,7 @@ document.addEventListener('click',e=>{
   else if(d.edit)openEdit(d.edit);
   else if(d.cat){cat=d.cat;renderStock()}
   else if(d.fcat){setFcat(d.fcat);showPhoto()}
+  else if(d.sug!==undefined){const x=sugList[+d.sug];if(x)fillFrom(x)}
   else if(d.st){const i=$('#f-qty');i.value=Math.max(0,(parseInt(i.value,10)||0)+ +d.st)}
   else if(d.lang){S.prefs.lang=d.lang;save();applyLang()}
   else if(d.day){const n=+d.day,a=S.prefs.days;if(a.includes(n)){if(a.length>1)S.prefs.days=a.filter(x=>x!==n)}else S.prefs.days=[...a,n].sort((x,y)=>y-x);save();renderAll()}
